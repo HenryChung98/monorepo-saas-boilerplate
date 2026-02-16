@@ -1,31 +1,42 @@
-# shadcn/ui monorepo template
+# SaaS Boilerplate
 
-This template is for creating a monorepo with shadcn/ui.
+## Shared
+pnpm add zod
 
-## Usage
+## Web
+pnpm add next-themes
+pnpm add zod react-hook-form @hookform/resolvers
+pnpm add @tanstack/react-query
+pnpm add @tanstack/react-query-devtools
 
-```bash
-pnpm dlx shadcn@latest init
-```
+## API
+nest new api 
+pnpm add bcrypt jsonwebtoken @nestjs/jwt @nestjs/passport passport passport-jwt
+pnpm add -D @types/bcrypt @types/jsonwebtoken @types/passport-jwt
+pnpm add zod
 
-## Adding components
+## Tech Stack
 
-To add components to your app, run the following command at the root of your `web` app:
+### Frontend
 
-```bash
-pnpm dlx shadcn@latest add button -c apps/web
-```
+- Next.js
+- TypeScript
+- Tailwind CSS
+- Shadcn UI
+- Zod
+- React Hook Form
+- TanStack Query
 
-This will place the ui components in the `packages/ui/src/components` directory.
+### Backend
 
-## Tailwind
+- NestJS
+- Drizzle ORM
+- REST API
 
-Your `tailwind.config.ts` and `globals.css` are already set up to use the components from the `ui` package.
+### Database
 
-## Using components
+- PostgreSQL
 
-To use the components in your app, import them from the `ui` package.
+### Deployment
 
-```tsx
-import { Button } from "@workspace/ui/components/button"
-```
+### Monitoring
