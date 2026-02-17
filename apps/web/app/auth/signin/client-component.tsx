@@ -1,4 +1,3 @@
-// app/signin/client-component.tsx
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -16,7 +15,7 @@ type SignInData = z.infer<typeof signInSchema>;
 
 export default function SignInClient() {
   const router = useRouter();
-  const { login } = useAuth();
+  const { fetchUser } = useAuth();
   const {
     register,
     handleSubmit,
@@ -31,17 +30,17 @@ export default function SignInClient() {
 
   const onSubmit = async (data: SignInData) => {
     try {
-      const response = await fetch("http://localhost:3001/api/auth/signin", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/signin`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include", // 쿠키 수신
         body: JSON.stringify(data),
       });
 
       if (!response.ok) throw new Error("Sign in failed");
 
-      const result = await response.json();
-      await login(result.accessToken); // await 추가 - 유저 정보 로드 완료까지 대기
-      router.push("/"); // 이제 유저 정보가 로드된 상태로 이동
+      await fetchUser();
+      router.push("/");
     } catch (error) {
       alert("Sign in failed");
     }

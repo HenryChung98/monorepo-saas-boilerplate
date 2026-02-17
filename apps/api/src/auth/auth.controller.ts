@@ -18,8 +18,17 @@ export class AuthController {
 
   @UseGuards(LocalAuthGuard)
   @Post('signin')
-  async signIn(@Request() req, @Body() signInDto: SignInDto) {
-    return this.authService.signIn(req.user);
+  async signIn(@Request() req, @Res() res: Response) {
+    const { accessToken } = await this.authService.signIn(req.user);
+
+    res.cookie('accessToken', accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 1000 * 60 * 60 * 24,
+    });
+
+    res.json({ success: true });
   }
 
   @Get('google')
@@ -30,8 +39,22 @@ export class AuthController {
   @UseGuards(AuthGuard('google'))
   async googleAuthCallback(@Request() req, @Res() res: Response) {
     const { accessToken } = await this.authService.validateOAuthLogin(req.user);
-    
+
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-    res.redirect(`${frontendUrl}/auth/callback?token=${accessToken}`);
+
+    res.cookie('accessToken', accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 1000 * 60 * 60 * 24,
+    });
+
+    res.redirect(`${frontendUrl}/auth/callback`);
+  }
+
+  @Post('signout')
+  async signOut(@Res() res: Response) {
+    res.clearCookie('accessToken');
+    res.json({ success: true });
   }
 }

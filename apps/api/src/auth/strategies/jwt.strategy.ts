@@ -1,6 +1,7 @@
 import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
 import { ExtractJwt, Strategy } from "passport-jwt";
+import { Request } from "express";
 
 interface JwtPayload {
   sub: string;
@@ -18,10 +19,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new Error("JWT_SECRET is not defined");
     }
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: ExtractJwt.fromExtractors([
+        (req: Request) => req?.cookies?.accessToken ?? null,
+      ]),
       ignoreExpiration: false,
       secretOrKey: secret,
-      algorithms: ["HS256"],
     });
   }
 

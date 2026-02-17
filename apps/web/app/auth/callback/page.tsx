@@ -1,21 +1,21 @@
 "use client";
 import { useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth-provider";
 
 export default function CallbackPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const { login } = useAuth();
+  const { fetchUser } = useAuth();
 
   useEffect(() => {
-    const token = searchParams.get("token");
-    if (token) {
-      login(token).then(() => router.push("/"));
-    } else {
-      router.push("/auth/signin");
-    }
-  }, [searchParams, router]);
+    fetchUser().then((success) => {
+      if (success) {
+        router.push("/");
+      } else {
+        router.push("/auth/signin");
+      }
+    });
+  }, []);
 
   return <div>loading...</div>;
 }

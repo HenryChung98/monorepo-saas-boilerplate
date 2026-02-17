@@ -7,14 +7,14 @@ type User = { userId: string; email: string; name: string } | null;
 
 const AuthContext = createContext<{
   user: User;
-  login: (token: string) => Promise<void>;
+  fetchUser: () => Promise<boolean>;
   logout: () => void;
   isLoading: boolean;
 }>({
   user: null,
-  login: async () => {},
+  fetchUser: async () => false,
   logout: () => {},
-  isLoading: true,
+  isLoading: false,
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -23,50 +23,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isMounted, setIsMounted] = useState(false);
   const router = useRouter();
 
-  const fetchUser = async (token: string) => {
+  const fetchUser = async (): Promise<boolean> => {
     try {
+      setIsLoading(true);
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile`, {
-        headers: { Authorization: `Bearer ${token}` },
+        credentials: 'include', // 쿠키 전송
       });
 
       if (response.ok) {
         const userData = await response.json();
         setUser(userData);
+        return true;
       } else {
-        localStorage.removeItem("accessToken");
+        setUser(null);
+        return false;
       }
     } catch (error) {
-      localStorage.removeItem("accessToken");
+      setUser(null);
+      return false;
     } finally {
       setIsLoading(false);
     }
   };
 
-  const login = async (token: string) => {
-    localStorage.setItem("accessToken", token);
-    await fetchUser(token);
-  };
-
-  const logout = () => {
-    localStorage.removeItem("accessToken");
+  const logout = async () => {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/signout`, {
+      method: 'POST',
+      credentials: 'include',
+    });
     setUser(null);
     router.push("/");
   };
 
   useEffect(() => {
     setIsMounted(true);
-    const token = localStorage.getItem("accessToken");
-    if (token) {
-      fetchUser(token);
-    } else {
-      setIsLoading(false);
-    }
+    fetchUser();
   }, []);
 
   if (!isMounted) return <>{children}</>;
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, fetchUser, logout, isLoading }}>
       {children}
     </AuthContext.Provider>
   );
