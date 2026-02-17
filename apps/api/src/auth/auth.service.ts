@@ -1,3 +1,4 @@
+// src/auth/auth.service.ts
 import { Injectable, ConflictException, UnauthorizedException } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import * as bcrypt from "bcrypt";
@@ -35,9 +36,10 @@ export class AuthService {
       throw error;
     }
   }
+
   async validateUser(email: string, password: string) {
     const user = await this.usersService.findByEmail(email);
-    if (user && (await bcrypt.compare(password, user.password))) {
+    if (user && user.password && (await bcrypt.compare(password, user.password))) {
       const { password, ...result } = user;
       return result;
     }
@@ -48,6 +50,33 @@ export class AuthService {
     const payload = { email: user.email, sub: user.id };
     return {
       accessToken: this.jwtService.sign(payload),
+    };
+  }
+
+  // Google OAuth 추가
+  async validateOAuthLogin(profile: any) {
+    let user = await this.usersService.findByEmail(profile.email);
+
+    if (!user) {
+      // 새 유저 생성 (OAuth는 password 없음)
+      user = await this.usersService.createOAuthUser(
+        profile.email,
+        profile.name,
+        profile.googleId
+      );
+    } else if (!user.googleId) {
+      // 기존 유저에 googleId 추가
+      user = await this.usersService.updateGoogleId(user.id, profile.googleId);
+    }
+
+    const payload = { email: user.email, sub: user.id };
+    return {
+      accessToken: this.jwtService.sign(payload),
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+      },
     };
   }
 }

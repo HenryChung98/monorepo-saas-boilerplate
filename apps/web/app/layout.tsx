@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "@workspace/ui/globals.css";
@@ -56,7 +57,9 @@ export default function RootLayout({
       <body className={`${fontSans.variable} ${fontMono.variable} font-sans antialiased `}>
         <Providers>
           <AuthProvider>
-            <main className="flex min-h-screen items-center justify-center">{children}</main>
+            <Suspense fallback={<div>Loading...</div>}>
+              <main className="flex min-h-screen items-center justify-center">{children}</main>
+            </Suspense>
           </AuthProvider>
         </Providers>
       </body>

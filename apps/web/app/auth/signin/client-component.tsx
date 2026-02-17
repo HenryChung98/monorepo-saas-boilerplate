@@ -25,6 +25,10 @@ export default function SignInClient() {
     resolver: zodResolver(signInSchema),
   });
 
+  const handleGoogleLogin = () => {
+    window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/google`;
+  };
+
   const onSubmit = async (data: SignInData) => {
     try {
       const response = await fetch("http://localhost:3001/api/auth/signin", {
@@ -71,6 +75,13 @@ export default function SignInClient() {
           className="w-full bg-foreground text-background p-2 disabled:opacity-50"
         >
           {isSubmitting ? "Signing in..." : "Sign In"}
+        </button>
+        <button
+          type="button"
+          onClick={handleGoogleLogin}
+          className="w-full bg-red-500 text-white p-2"
+        >
+          Sign in with Google
         </button>
       </form>
     </div>

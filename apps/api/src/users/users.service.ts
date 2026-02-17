@@ -24,4 +24,27 @@ export class UsersService {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user;
   }
+
+  // OAuth용 메서드 추가
+  async createOAuthUser(email: string, name: string, googleId: string) {
+    const [user] = await db
+      .insert(users)
+      .values({ 
+        email, 
+        name, 
+        googleId,
+        password: null, // OAuth 유저는 password 없음
+      })
+      .returning();
+    return user;
+  }
+
+  async updateGoogleId(userId: string, googleId: string) {
+    const [user] = await db
+      .update(users)
+      .set({ googleId })
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
+  }
 }

@@ -7,7 +7,7 @@ type User = { userId: string; email: string; name: string } | null;
 
 const AuthContext = createContext<{
   user: User;
-  login: (token: string) => Promise<void>;  
+  login: (token: string) => Promise<void>;
   logout: () => void;
   isLoading: boolean;
 }>({
@@ -19,12 +19,43 @@ const AuthContext = createContext<{
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const router = useRouter();
 
+  const fetchUser = async (token: string) => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (response.ok) {
+        const userData = await response.json();
+        setUser(userData);
+      } else {
+        localStorage.removeItem("accessToken");
+      }
+    } catch (error) {
+      localStorage.removeItem("accessToken");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const login = async (token: string) => {
+    localStorage.setItem("accessToken", token);
+    await fetchUser(token);
+  };
+
+  const logout = () => {
+    localStorage.removeItem("accessToken");
+    setUser(null);
+    router.push("/");
+  };
+
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    console.log(token);
+    setIsMounted(true);
+    const token = localStorage.getItem("accessToken");
     if (token) {
       fetchUser(token);
     } else {
@@ -32,35 +63,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const fetchUser = async (token: string) => {
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      
-      if (response.ok) {
-        const userData = await response.json();
-        setUser(userData);
-      } else {
-        localStorage.removeItem("token");
-      }
-    } catch (error) {
-      localStorage.removeItem("token");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const login = async (token: string) => {  
-    localStorage.setItem("token", token);
-    await fetchUser(token);  
-  };
-
-  const logout = () => {
-    localStorage.removeItem("token");
-    setUser(null);
-    router.push("/");
-  };
+  if (!isMounted) return <>{children}</>;
 
   return (
     <AuthContext.Provider value={{ user, login, logout, isLoading }}>

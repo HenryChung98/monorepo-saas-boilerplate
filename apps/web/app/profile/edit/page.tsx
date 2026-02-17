@@ -40,7 +40,7 @@ export default function EditProfilePage() {
   }, [user]);
 
   const fetchProfile = async () => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("accessToken");
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile`, {
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -49,7 +49,7 @@ export default function EditProfilePage() {
   };
 
   const onSubmit = async (data: ProfileData) => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("accessToken");
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile`, {
       method: "PUT",
       headers: {
