@@ -40,3 +40,35 @@ pnpm add zod
 ### Deployment
 
 ### Monitoring
+
+
+
+<!-- ### Setup
+
+pnpm install 
+
+web env
+```txt
+NEXT_PUBLIC_API_URL=http://localhost:3001
+```
+
+api env
+```txt
+DATABASE_URL="postgresql://user:1234@localhost:5432/test"
+PORT=3001
+JWT_SECRET=
+FRONTEND_URL=http://localhost:3000
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+GOOGLE_CALLBACK_URL=
+NODE_ENV=development
+```
+
+docker
+
+docker-compose up -d
+docker-compose down -v 
+docker-compose down --rmi all
+
+cd api
+npx drizzle-kit studio -->
