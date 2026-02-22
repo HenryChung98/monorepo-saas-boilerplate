@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { Spinner } from "@workspace/ui/components/spinner";
 
 type User = { userId: string; email: string; name: string } | null;
 
@@ -14,31 +15,35 @@ const AuthContext = createContext<{
   user: null,
   fetchUser: async () => false,
   logout: () => {},
-  isLoading: false,
+  isLoading: true,
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
   const fetchUser = async (): Promise<boolean> => {
     try {
       setIsLoading(true);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile`, {
-        credentials: 'include', // 쿠키 전송
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
+        credentials: "include",
       });
 
       if (response.ok) {
-        const userData = await response.json();
-        setUser(userData);
+        const data = await response.json();
+        // data가 null인 경우는 로그인이 안 된 상태이므로 user를 null로 설정
+        if (!data) {
+          setUser(null);
+          return false;
+        }
+        setUser(data);
         return true;
       } else {
         setUser(null);
         return false;
       }
-    } catch (error) {
+    } catch {
       setUser(null);
       return false;
     } finally {
@@ -48,19 +53,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = async () => {
     await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/signout`, {
-      method: 'POST',
-      credentials: 'include',
+      method: "POST",
+      credentials: "include",
     });
     setUser(null);
     router.push("/");
   };
 
   useEffect(() => {
-    setIsMounted(true);
     fetchUser();
   }, []);
 
-  if (!isMounted) return <>{children}</>;
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Spinner />
+      </div>
+    );
+  }
 
   return (
     <AuthContext.Provider value={{ user, fetchUser, logout, isLoading }}>

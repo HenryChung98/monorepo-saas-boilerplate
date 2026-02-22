@@ -1,10 +1,22 @@
 "use client";
 
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth-provider";
+import { Input } from "@workspace/ui/components/input";
+import { Button } from "@workspace/ui/components/button";
+import { Spinner } from "@workspace/ui/components/spinner";
+import { Field, FieldError, FieldLabel, FieldGroup } from "@workspace/ui/components/field";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card";
 
 const signInSchema = z.object({
   email: z.string().email("Invalid email"),
@@ -16,12 +28,9 @@ type SignInData = z.infer<typeof signInSchema>;
 export default function SignInClient() {
   const router = useRouter();
   const { fetchUser } = useAuth();
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<SignInData>({
+  const form = useForm<SignInData>({
     resolver: zodResolver(signInSchema),
+    defaultValues: { email: "", password: "" },
   });
 
   const handleGoogleLogin = () => {
@@ -33,7 +42,7 @@ export default function SignInClient() {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/signin`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include", // 쿠키 수신
+        credentials: "include",
         body: JSON.stringify(data),
       });
 
@@ -41,48 +50,73 @@ export default function SignInClient() {
 
       await fetchUser();
       router.push("/");
-    } catch (error) {
+    } catch {
       alert("Sign in failed");
     }
   };
 
   return (
-    <div className="max-w-md mx-auto mt-8">
-      <h1 className="text-2xl font-bold mb-6">Sign In</h1>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <div>
-          <input
-            type="email"
-            placeholder="Email"
-            {...register("email")}
-            className="w-full border p-2"
-          />
-          {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
-        </div>
-        <div>
-          <input
-            type="password"
-            placeholder="Password"
-            {...register("password")}
-            className="w-full border p-2"
-          />
-          {errors.password && <p className="text-red-500 text-sm">{errors.password.message}</p>}
-        </div>
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="w-full bg-foreground text-background p-2 disabled:opacity-50"
-        >
-          {isSubmitting ? "Signing in..." : "Sign In"}
-        </button>
-        <button
-          type="button"
-          onClick={handleGoogleLogin}
-          className="w-full bg-red-500 text-white p-2"
-        >
-          Sign in with Google
-        </button>
-      </form>
+    <div className="flex justify-center items-center min-h-screen">
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle>Sign In</CardTitle>
+          <CardDescription>Enter your credentials to continue</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form id="sign-in-form" onSubmit={form.handleSubmit(onSubmit)}>
+            <FieldGroup>
+              <Controller
+                name="email"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor="sign-in-email">Email</FieldLabel>
+                    <Input
+                      {...field}
+                      id="sign-in-email"
+                      type="email"
+                      placeholder="Email"
+                      aria-invalid={fieldState.invalid}
+                    />
+                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  </Field>
+                )}
+              />
+              <Controller
+                name="password"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor="sign-in-password">Password</FieldLabel>
+                    <Input
+                      {...field}
+                      id="sign-in-password"
+                      type="password"
+                      placeholder="Password"
+                      aria-invalid={fieldState.invalid}
+                    />
+                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  </Field>
+                )}
+              />
+            </FieldGroup>
+          </form>
+        </CardContent>
+        <CardFooter className="flex flex-col gap-2">
+          <Button
+            type="submit"
+            form="sign-in-form"
+            disabled={form.formState.isSubmitting}
+            className="w-full"
+          >
+            {form.formState.isSubmitting && <Spinner className="mr-2" />}
+            {form.formState.isSubmitting ? "Signing in..." : "Sign In"}
+          </Button>
+          <Button type="button" variant="destructive" onClick={handleGoogleLogin} className="w-full">
+            Sign in with Google
+          </Button>
+        </CardFooter>
+      </Card>
     </div>
   );
 }

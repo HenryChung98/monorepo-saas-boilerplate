@@ -62,11 +62,11 @@ export class AuthService {
       user = await this.usersService.createOAuthUser(
         profile.email,
         profile.name,
-        profile.googleId
+        profile.providerId
       );
     } else if (!user.googleId) {
       // 기존 유저에 googleId 추가
-      user = await this.usersService.updateGoogleId(user.id, profile.googleId);
+      user = await this.usersService.updateGoogleId(user.id, profile.providerId);
     }
 
     const payload = { email: user.email, sub: user.id };
