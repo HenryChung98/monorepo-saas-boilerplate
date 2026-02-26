@@ -40,22 +40,18 @@ export default function EditProfilePage() {
   }, [user]);
 
   const fetchProfile = async () => {
-    const token = localStorage.getItem("accessToken");
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile`, {
-      headers: { Authorization: `Bearer ${token}` },
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/profile`, {
+      credentials: "include",
     });
     const data = await response.json();
     setValue("name", data.name);
   };
 
   const onSubmit = async (data: ProfileData) => {
-    const token = localStorage.getItem("accessToken");
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/profile`, {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
       body: JSON.stringify(data),
     });
 

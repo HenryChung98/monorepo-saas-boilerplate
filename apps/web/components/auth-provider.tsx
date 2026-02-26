@@ -6,6 +6,8 @@ import { Spinner } from "@workspace/ui/components/spinner";
 
 type User = { userId: string; email: string; name: string } | null;
 
+const API_BASE = `${process.env.NEXT_PUBLIC_API_URL}/api`;
+
 const AuthContext = createContext<{
   user: User;
   fetchUser: () => Promise<boolean>;
@@ -26,13 +28,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const fetchUser = async (): Promise<boolean> => {
     try {
       setIsLoading(true);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
+      let response = await fetch(`${API_BASE}/auth/me`, {
         credentials: "include",
       });
 
+      // accessToken 만료 시 → refresh 시도
+      if (response.status === 401) {
+        const refreshRes = await fetch(`${API_BASE}/auth/refresh`, {
+          method: "POST",
+          credentials: "include",
+        });
+
+        if (!refreshRes.ok) {
+          setUser(null);
+          return false;
+        }
+
+        // 새 accessToken으로 재시도
+        response = await fetch(`${API_BASE}/auth/me`, {
+          credentials: "include",
+        });
+      }
+
       if (response.ok) {
         const data = await response.json();
-        // data가 null인 경우는 로그인이 안 된 상태이므로 user를 null로 설정
         if (!data) {
           setUser(null);
           return false;
@@ -52,12 +71,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = async () => {
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/signout`, {
+    await fetch(`${API_BASE}/auth/signout`, {
       method: "POST",
       credentials: "include",
     });
     setUser(null);
-    router.push("/");
+    router.push("/auth/signin");
   };
 
   useEffect(() => {

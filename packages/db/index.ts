@@ -2,7 +2,7 @@ import { config } from "dotenv";
 import { resolve } from "path";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import * as schema from "./schema";
+import * as schema from "./schema/index";
 
 config({ path: resolve(process.cwd(), ".env.local") });
 

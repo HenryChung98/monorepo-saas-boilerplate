@@ -1,8 +1,8 @@
-import { Injectable } from '@nestjs/common';
-import { eq } from 'drizzle-orm';
-import * as bcrypt from 'bcrypt';
-import { db } from '../db';
-import { users, NewUser } from '../db/schema';
+import { Injectable } from "@nestjs/common";
+import { eq } from "drizzle-orm";
+import * as bcrypt from "bcrypt";
+import { db } from "@workspace/db";
+import { users } from "@workspace/db/schema";
 
 @Injectable()
 export class UsersService {
@@ -25,26 +25,30 @@ export class UsersService {
     return user;
   }
 
-  // OAuth용 메서드 추가
   async createOAuthUser(email: string, name: string, googleId: string) {
-    const [user] = await db
-      .insert(users)
-      .values({ 
-        email, 
-        name, 
-        googleId,
-        password: null, // OAuth 유저는 password 없음
-      })
-      .returning();
+    const [user] = await db.insert(users).values({ email, name, googleId }).returning();
     return user;
   }
 
   async updateGoogleId(userId: string, googleId: string) {
-    const [user] = await db
+    const [user] = await db.update(users).set({ googleId }).where(eq(users.id, userId)).returning();
+    return user;
+  }
+
+  async getProfile(userId: string) {
+    const user = await this.findById(userId);
+    if (!user) return null;
+    const { password, ...profile } = user;
+    return profile;
+  }
+
+  async updateProfile(userId: string, name: string) {
+    const [updatedUser] = await db
       .update(users)
-      .set({ googleId })
+      .set({ name, updatedAt: new Date() })
       .where(eq(users.id, userId))
       .returning();
-    return user;
+    const { password, ...profile } = updatedUser;
+    return profile;
   }
 }
