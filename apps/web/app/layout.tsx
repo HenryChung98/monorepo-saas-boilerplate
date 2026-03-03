@@ -58,7 +58,7 @@ export default function RootLayout({
         <Providers>
           <AuthProvider>
             <Suspense fallback={<div>Loading...</div>}>
-              <main className="flex min-h-screen items-center justify-center">{children}</main>
+              {children}
             </Suspense>
           </AuthProvider>
         </Providers>
