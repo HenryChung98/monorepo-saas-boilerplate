@@ -1,12 +1,12 @@
 import { createMetadata } from "@/lib/metadata";
-import SignInClient from "./client-component";
+import SignInForm from "../_components/signin-form";
 
 export const metadata = createMetadata(
-  "/signin",
+  "/auth/signin",
   "Sign In",
   "Sign in to your account"
 );
 
 export default function SignInPage() {
-  return <SignInClient />;
+  return <SignInForm />;
 }

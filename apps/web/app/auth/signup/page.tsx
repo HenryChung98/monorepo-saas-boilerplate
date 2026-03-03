@@ -1,12 +1,14 @@
 import { createMetadata } from "@/lib/metadata";
-import SignUpClient from "./client-component";
+import SignUpForm from "../_components/signup-form";
 
 export const metadata = createMetadata(
-  "/signup",
+  "/auth/signup",
   "Sign Up",
   "Create a new account"
 );
 
 export default function SignUpPage() {
-  return <SignUpClient />;
+  return (
+    <SignUpForm />
+  );
 }
