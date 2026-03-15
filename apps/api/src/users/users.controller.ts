@@ -9,11 +9,11 @@ export class UsersController {
 
   @Get('profile')
   async getProfile(@Request() req) {
-    return this.usersService.getProfile(req.user.userId);
+    return this.usersService.getProfile(req.user.id);
   }
 
   @Put('profile')
   async updateProfile(@Request() req, @Body() body: { name: string }) {
-    return this.usersService.updateProfile(req.user.userId, body.name);
+    return this.usersService.updateProfile(req.user.id, body.name);
   }
 }

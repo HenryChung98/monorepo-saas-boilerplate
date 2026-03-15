@@ -54,7 +54,7 @@ export class AuthController {
   @Post("refresh")
   async refresh(@Request() req, @Res() res: Response) {
     const { accessToken, refreshToken } = await this.authService.refresh(
-      req.user.userId,
+      req.user.id,
       req.user.refreshToken
     );
 
@@ -106,7 +106,7 @@ export class AuthController {
   @UseGuards(JwtRefreshAuthGuard)
   @Post("signout")
   async signOut(@Request() req, @Res() res: Response) {
-    await this.authService.revokeRefreshToken(req.user.userId);
+    await this.authService.revokeRefreshToken(req.user.id);
     res.clearCookie("accessToken");
     res.clearCookie("refreshToken");
     res.json({ success: true });
