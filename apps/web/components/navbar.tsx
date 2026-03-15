@@ -2,7 +2,7 @@
 import { ThemeToggle } from "./theme-toggle";
 import { useAuth } from "./auth-provider";
 import { Button } from "@workspace/ui/components/button";
-import { Link } from "@/i18n/navigation";
+import Link from "next/link";
 
 export const NavBar = () => {
   const { user, logout } = useAuth();
@@ -58,7 +58,6 @@ export const NavBar = () => {
                 </Button>
               </>
             )}
-            <LocaleSwitcher />
             <ThemeToggle />
           </div>
         </div>

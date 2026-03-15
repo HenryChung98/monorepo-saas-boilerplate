@@ -58,16 +58,28 @@ export class AuthService {
   }
 
   async validateOAuthLogin(profile: any) {
-    let user = await this.usersService.findByEmail(profile.email);
+    const { provider, providerId, email, name } = profile;
 
-    if (!user) {
-      user = await this.usersService.createOAuthUser(
-        profile.email,
-        profile.name,
-        profile.providerId
-      );
-    } else if (!user.googleId) {
-      user = await this.usersService.updateGoogleId(user.id, profile.providerId);
+    // 1. oauthAccounts 테이블에서 해당 provider + providerId로 조회
+    const oauthAccount = await this.usersService.findOAuthAccount(provider, providerId);
+
+    let user;
+
+    if (oauthAccount) {
+      // 이미 연결된 OAuth 계정이 있으면 해당 유저 조회
+      user = await this.usersService.findById(oauthAccount.userId);
+    } else {
+      // OAuth 계정 없음 → 이메일로 기존 유저 확인
+      const existingUser = await this.usersService.findByEmail(email);
+
+      if (existingUser) {
+        // 이메일은 있지만 이 OAuth provider 연결이 없음 → 연결 추가
+        await this.usersService.linkOAuthAccount(existingUser.id, provider, providerId);
+        user = existingUser;
+      } else {
+        // 완전히 신규 → 유저 생성 + OAuth 연결
+        user = await this.usersService.createOAuthUser(email, name, provider, providerId);
+      }
     }
 
     const payload = { email: user.email, sub: user.id };

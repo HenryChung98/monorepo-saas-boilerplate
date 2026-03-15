@@ -1,8 +1,8 @@
 import { Injectable } from "@nestjs/common";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import * as bcrypt from "bcrypt";
 import { db } from "@workspace/db";
-import { users } from "@workspace/db/schema";
+import { users, oauthAccounts } from "@workspace/db/schema";
 
 @Injectable()
 export class UsersService {
@@ -25,14 +25,27 @@ export class UsersService {
     return user;
   }
 
-  async createOAuthUser(email: string, name: string, googleId: string) {
-    const [user] = await db.insert(users).values({ email, name, googleId }).returning();
+  async findOAuthAccount(provider: string, providerAccountId: string) {
+    const [account] = await db
+      .select()
+      .from(oauthAccounts)
+      .where(
+        and(
+          eq(oauthAccounts.provider, provider),
+          eq(oauthAccounts.providerAccountId, providerAccountId)
+        )
+      );
+    return account;
+  }
+
+  async createOAuthUser(email: string, name: string, provider: string, providerAccountId: string) {
+    const [user] = await db.insert(users).values({ email, name }).returning();
+    await db.insert(oauthAccounts).values({ userId: user.id, provider, providerAccountId });
     return user;
   }
 
-  async updateGoogleId(userId: string, googleId: string) {
-    const [user] = await db.update(users).set({ googleId }).where(eq(users.id, userId)).returning();
-    return user;
+  async linkOAuthAccount(userId: string, provider: string, providerAccountId: string) {
+    await db.insert(oauthAccounts).values({ userId, provider, providerAccountId });
   }
 
   async getProfile(userId: string) {
